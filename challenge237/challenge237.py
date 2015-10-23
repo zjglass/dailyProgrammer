@@ -1,6 +1,4 @@
 def main():
-	#open enable1.txt
-	dictionary = open('enable1.txt','r')
 	
 	inputs = []
 	
@@ -15,12 +13,15 @@ def main():
 		longestWord = ""
 
 		#loop over words
-		for word in dictionary:
+		for word in open('enable1.txt','r'):
+			
+			#remove newline charater and reset skip flag
 			word = word.strip()
 			skip = False
 
 			#loop over the letters in each word
 			for letter in word:
+				
 				#if the word can't be typed, flag it for skipping
 				if letter not in keyboard:
 					
@@ -28,12 +29,10 @@ def main():
 				
 			#if the word was found to be untypable, skip it. Otherwise, if it
 			#was longer than the current longestWord, set it as longestWord
-			if skip == True:
-				continue
+			if skip == False:
 
-			if len(word) > len(longestWord):
-				longestWord = word
-		
+				if len(word) > len(longestWord):
+					longestWord = word
 		#print result
 		print(keyboard, " = ", longestWord)
 			
