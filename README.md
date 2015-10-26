@@ -7,9 +7,8 @@ all challenges will either be
 
 Completed:
 
-    236
-    237
+    237[Easy]
 
 In Progress:
 	
-	none
+	
