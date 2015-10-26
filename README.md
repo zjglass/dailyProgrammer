@@ -8,9 +8,8 @@ named "challenge<number>" with the appropriate file extension
 
 Completed:
 
-    
+	236[Easy]    
 
 In Progress:
     
-    236[Easy]
-    237[Easy]
+	
