@@ -7,7 +7,7 @@ def solve(boardStack):
 		print("Done!")
 		return True
 	else:
-		move(boardStack)
+		makeMoves(boardStack)
 		solve(boardStack)
 		
 
@@ -19,28 +19,248 @@ def isComplete(config):
 				return False	
 	return True
 
-def move(boardStack):
+def makeMoves(boardStack):
 	curBoard = boardStack.pop()
-	for row in range(len(curBoard)):
-		for col in range(len(curBoard[row])):
-			moveMade = False
-			if config[row][col] == ".":
-				newBoard0 = copy.deepcopy(curBoard)
-				newBoard1 = copy.deepcopy(curBoard)
-				newBoard0[row][col], newBoard1[row][col] = 0, 1
-				if isValid(newBoard0):
-					boardStack.append(newBoard0)
-					moveMade = True
-				if isValid(newBoard1):
-					boardStack.append(newBoard1)
-					moveMade = True
-			if moveMade:
-				return 
 
+	for move in checkDoubles(curBoard):
+		curBoard[move[1]][move[2]] = move[0]
+		prettyPrint(curBoard)
+		print("____________")
+	for move in checkSandwiches(curBoard):
+		curBoard[move[1]][move[2]] = move[0]
+		prettyPrint(curBoard)
+		print("____________")
+	for move in checkNumComplete(curBoard):
+		curBoard[move[1]][move[2]] = move[0]
+		prettyPrint(curBoard)
+		print("____________")
+	for move in complementSimilarRow(curBoard):
+		curBoard[move[1]][move[2]] = move[0]
+		prettyPrint(curBoard)
+		print("____________")
+	boardStack.append(curBoard)
+	
+
+	#eventually, once logic inplementation is finished, this will make all possible valid moves
+	#on the mostly filled in board, backtracking when no more valid moves can be made and the board
+	#is not complete. this will eventually result in a valid, complete, board. this will only come
+	#into play when all logic has failed.
+	#
+	#for row in range(len(curBoard)):
+	#	for col in range(len(curBoard[row])):
+	#		moveMade = False
+	#		if config[row][col] == ".":
+	#			newBoard0 = copy.deepcopy(curBoard)
+	#			newBoard1 = copy.deepcopy(curBoard)
+	#			newBoard0[row][col], newBoard1[row][col] = "0", "1"
+	#			if isValid(newBoard0):
+	#				boardStack.append(newBoard0)
+	#				moveMade = True
+	#			if isValid(newBoard1):
+	#				boardStack.append(newBoard1)
+	#				moveMade = True
+	#		if moveMade:
+	#			return 
+
+#returns either a list of 3-tuples [(<0 or 1>, <row>, <col>), ...]
+# or an empty list
+def checkDoubles(config):
+	print("doubles sweep!")
+	moveList = []
+	for row in range(len(config)):
+		for col in range(len(config)):
+			
+			#if we're not at the last row, where this is irrelevant
+			if row+1 <= len(config)-1 :
+				#if there is a vertical double number?
+				if (config[row][col] != ".") and (config[row][col] == config[row+1][col]):
+					#if we're not on the first row and about to negative index
+					if (row-1 >= 0):
+						#if the spot above us is unpopulated
+						if config[row-1][col] == ".":
+							#add moves to moveList!
+							if config[row][col] == "1":
+								moveList.append(("0", (row-1), col))
+							else:
+								moveList.append(("1", (row-1), col))
+					#if we're not on the second to last row and about to index out of range
+					if (row+2 < len(config)):
+						#if the spot below the double is unpopulated
+						if config[row+2][col] == ".":
+							#add moves to moveList
+							if config[row][col] == "1":
+								moveList.append(("0", (row+2), col))
+							else:
+								moveList.append(("1", (row+2), col))
+
+			#if we're not at the last col, where this is irrelevant
+			if col+1 <= len(config)-1 :
+				#if there is a horizontal double number?
+				if (config[row][col] != ".") and (config[row][col] == config[row][col+1]):
+					#if we're not on the first col and about to negative index
+					if (col-1 >= 0):
+						#if the spot left of us is unpopulated
+						if config[row][col-1] == ".":
+							#add moves to moveList!
+							if config[row][col] == "1":
+								moveList.append(("0", row, (col-1)))
+							else:
+								moveList.append(("1", row, (col-1)))
+					#if we're not on the second to last col and about to index out of range
+					if (col+2 < len(config)):
+						#if the spot right of the double is unpopulated
+						if config[row][col+2] == ".":
+							#add moves to moveList
+							if config[row][col] == "1":
+								moveList.append(("0", row, (col+2)))
+							else:
+								moveList.append(("1", row, (col+2)))
+	return moveList						
+
+# returns moves in the fashion of checkDoubles(), but these moves will fill in
+# meatless number sandwiches!
+def checkSandwiches(config):
+	print("sandwich sweep!")
+	moveList = []
+	for row in range(len(config)):
+		for col in range(len(config)):
+			
+			#if we're not at or near the last row, where this is irrelevant
+			if row+2 <= len(config)-1 :
+				#if there is a vertical number sandwich without number meat?
+				if (config[row][col] != ".") and (config[row][col] == config[row+2][col]) and (config[row+1][col] == "."):
+					#add moves to moveList!
+						if config[row][col] == "1":
+							moveList.append(("0", (row+1), col))
+						else:
+							moveList.append(("1", (row+1), col))
+			#if we're not at or near the last col, where this is irrelevant
+			if col+2 <= len(config)-1 :
+				#if there is a horizontal number sandwich without number meat?
+				if (config[row][col] != ".") and (config[row][col] == config[row][col+2]) and (config[row][col+1] == "."):
+					#add moves to moveList!
+						if config[row][col] == "1":
+							moveList.append(("0", row, (col+1)))
+						else:
+							moveList.append(("1", row, (col+1)))
+
+	return moveList						
+
+#def fillLastSpaces(config):
+#	print("last space sweep!")
+#	moveList = []
+#	for i in range(len(config)):
+#		blanksInRow = 0
+#		blanksInCol = 0
+#		rowForCol = None
+#		colForRow = None
+#		index = 0
+#		for spot in getRowData(config, i):
+#			if spot == ".":
+#				blanksInRow += 1
+#				colForRow = index
+#			index += 1
+#		index = 0
+#		for spot in getColData(config, i):
+#			if spot == ".":
+#				blanksInCol += 1
+#				rowForCol = index
+#			index += 1
+#		if blanksInRow == 1:
+#			if onesOrZerosInRow(config, 0, i) > onesOrZerosInRow(config, 1, i):
+#				moveList.append(("1", i, colForRow))
+#			elif onesOrZerosInRow(config, 1, i) > onesOrZerosInRow(config, 0, i):
+#				moveList.append(("0", i, colForRow))
+#		if blanksInCol == 1:
+#			if onesOrZerosInCol(config, 0, i) > onesOrZerosInCol(config, 1, i):
+#				moveList.append(("1", rowForCol, i))
+#			elif onesOrZerosInCol(config, 1, i) > onesOrZerosInCol(config, 0, i):	
+#				moveList.append(("0", rowForCol, i))
+#	return moveList
+
+def checkNumComplete(config):
+	print("number complete sweep!")
+	moveList = []
+	for i in range(len(config)):
+		if isFullLine(getRowData(config, i)) == False:
+			if onesOrZerosInRow(config, 0, i) == .5*len(config):
+				for col in range(len(config)):
+					if config[i][col] == ".":
+						moveList.append(("1", i, col))
+			if onesOrZerosInRow(config, 1, i) == .5*len(config):
+				for col in range(len(config)):
+					if config[i][col] == ".":
+						moveList.append(("0", i, col))
+		if isFullLine(getColData(config, i)) == False:
+			if onesOrZerosInCol(config, 0, i) == .5*len(config):
+				for row in range(len(config)):
+					if config[row][i] == ".":
+						moveList.append(("1", row, i))
+			if onesOrZerosInCol(config, 1, i) == .5*len(config):
+				for row in range(len(config)):
+					if config[row][i] == ".":
+						moveList.append(("0", row, i))
+	return moveList
+
+def complementSimilarRow(config):
+	print("complement similar rows!")
+	moveList = []
+	indicesList = []
+	for num in range(len(config)):
+		indicesList.append(num)
+
+	for i in range(len(config)):
+		curRow = getRowData(config, i)
+		curCol = getColData(config, i)
+		blanksInRow = 0
+		blanksInCol = 0 
+		for col in range(len(curRow)):
+			if curRow[col] == ".":
+				blanksInRow += 1
+				if blanksInRow > 2:
+					break
+		if blanksInRow == 2:
+			for row in indicesList[i+1:]:
+				testRow = getRowData(config, row)
+				if isFullLine(testRow):
+					differences = differencesInLine(curRow, testRow)
+					if len(differences) == 2:
+						moveList.append((differences[0][0], i, differences[0][1]))
+						moveList.append((differences[1][0], i, differences[1][1]))
+
+		for row in range(len(curCol)):
+			if curCol[row] == ".":
+				blanksInCol += 1
+				if blanksInCol > 2:
+					break
+		if blanksInCol == 2:
+			for col in indicesList[i+1:]:
+				testCol = getColData(config, col)
+				if isFullLine(testCol):
+					differences = differencesInLine(curCol, testCol)
+					if len(differences) == 2:
+						moveList.append((differences[0][0], differences[0][1], i))
+						moveList.append((differences[1][0], differences[1][1], i))
+	return moveList
 
 # check to see if the config passed in follows the rules of the game
 def isValid(config):
 	print("nope")
+
+def isFullLine(lineData):
+	for spot in lineData:
+		if spot == ".":
+			return False
+	return True
+
+def differencesInLine(lineData1, lineData2):
+	differences = []
+	opposite = {"0":"1", "1":"0"}
+	for spot in range(len(lineData1)):
+		if lineData1[spot] != lineData2[spot]:
+			differences.append((opposite[lineData2[spot]], spot))
+	return differences
+	
 
 # returns the data at a given row.
 # the data returned is not the real row, but a mirror of it
@@ -85,15 +305,9 @@ def onesOrZerosInCol(config, switch, col):
 	return count 
 
 
-def isFullRowOrCol(line):
-	for spot in line:
-		if spot == ".":
-			return False
-	return True
-
 # returns True if rowData is full, and a duplicate of another full row in config
 def isDuplicateRow(config, rowData):
-	if isFullRowOrCol(rowData) != True:
+	if isFullLine(rowData) != True:
 		return False
 
 	count = 0
@@ -107,7 +321,7 @@ def isDuplicateRow(config, rowData):
 
 # returns True if colData is full, and a duplicate of another full col in config
 def isDuplicateCol(config, colData):
-	if isFullRowOrCol(colData) != True:
+	if isFullLine(colData) != True:
 		return False
 
 	count = 0
@@ -131,9 +345,18 @@ def prettyPrint(config):
 # solves, then prettyPrints config
 def main():
 	print("Lets do this!")
-	config = [[".", ".", ".", "."],["0",".","0","."],[".",".","0","."],[".",".",".","1"]]
+	config = []
+	config.append([".",".",".",".","0","."])
+	config.append([".",".",".",".",".","."])
+	config.append(["1",".",".","1",".","."])
+	config.append([".","0","0",".",".","."])
+	config.append([".",".","0",".",".","."])
+	config.append([".",".",".",".",".","."])
 	boardStack = []
 	boardStack.append(config)
+
+	prettyPrint(config)
+	print("____________")
 
 	solve(boardStack)
 	prettyPrint(boardStack[-1])
