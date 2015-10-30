@@ -21,11 +21,15 @@ def isComplete(config):
 
 def makeMoves(boardStack):
 	curBoard = boardStack.pop()
+	movesMade = 0
 
-	for move in checkDoubles(curBoard):
+	queuedMoves = checkDoubles(curBoard)
+	for move in queuedMoves:
 		curBoard[move[1]][move[2]] = move[0]
+		movesMade += 1
 		prettyPrint(curBoard)
 		print("____________")
+
 	for move in checkSandwiches(curBoard):
 		curBoard[move[1]][move[2]] = move[0]
 		prettyPrint(curBoard)
@@ -35,6 +39,10 @@ def makeMoves(boardStack):
 		prettyPrint(curBoard)
 		print("____________")
 	for move in complementSimilarRow(curBoard):
+		curBoard[move[1]][move[2]] = move[0]
+		prettyPrint(curBoard)
+		print("____________")
+	for move in complementSimilarCol(curBoard):
 		curBoard[move[1]][move[2]] = move[0]
 		prettyPrint(curBoard)
 		print("____________")
@@ -146,37 +154,6 @@ def checkSandwiches(config):
 
 	return moveList						
 
-#def fillLastSpaces(config):
-#	print("last space sweep!")
-#	moveList = []
-#	for i in range(len(config)):
-#		blanksInRow = 0
-#		blanksInCol = 0
-#		rowForCol = None
-#		colForRow = None
-#		index = 0
-#		for spot in getRowData(config, i):
-#			if spot == ".":
-#				blanksInRow += 1
-#				colForRow = index
-#			index += 1
-#		index = 0
-#		for spot in getColData(config, i):
-#			if spot == ".":
-#				blanksInCol += 1
-#				rowForCol = index
-#			index += 1
-#		if blanksInRow == 1:
-#			if onesOrZerosInRow(config, 0, i) > onesOrZerosInRow(config, 1, i):
-#				moveList.append(("1", i, colForRow))
-#			elif onesOrZerosInRow(config, 1, i) > onesOrZerosInRow(config, 0, i):
-#				moveList.append(("0", i, colForRow))
-#		if blanksInCol == 1:
-#			if onesOrZerosInCol(config, 0, i) > onesOrZerosInCol(config, 1, i):
-#				moveList.append(("1", rowForCol, i))
-#			elif onesOrZerosInCol(config, 1, i) > onesOrZerosInCol(config, 0, i):	
-#				moveList.append(("0", rowForCol, i))
-#	return moveList
 
 def checkNumComplete(config):
 	print("number complete sweep!")
@@ -211,9 +188,9 @@ def complementSimilarRow(config):
 
 	for i in range(len(config)):
 		curRow = getRowData(config, i)
-		curCol = getColData(config, i)
+		
 		blanksInRow = 0
-		blanksInCol = 0 
+		 
 		for col in range(len(curRow)):
 			if curRow[col] == ".":
 				blanksInRow += 1
@@ -228,6 +205,22 @@ def complementSimilarRow(config):
 						moveList.append((differences[0][0], i, differences[0][1]))
 						moveList.append((differences[1][0], i, differences[1][1]))
 
+		
+	return moveList
+
+#
+#
+#
+def complementSimilarCol(config):
+	print("complement similar cols!")
+	moveList = []
+	indicesList = []
+	for num in range(len(config)):
+		indicesList.append(num)
+
+	for i in range(len(config)):
+		blanksInCol = 0
+		curCol = getColData(config, i)
 		for row in range(len(curCol)):
 			if curCol[row] == ".":
 				blanksInCol += 1
@@ -241,18 +234,28 @@ def complementSimilarRow(config):
 					if len(differences) == 2:
 						moveList.append((differences[0][0], differences[0][1], i))
 						moveList.append((differences[1][0], differences[1][1], i))
+
 	return moveList
 
 # check to see if the config passed in follows the rules of the game
-def isValid(config):
-	print("nope")
+#def isValid(config):
+#	print("nope")
 
+
+#returns False if the passed in lineData has blanks; else, returns True
 def isFullLine(lineData):
 	for spot in lineData:
 		if spot == ".":
 			return False
 	return True
 
+#takes in two sets of lineData
+#	lineData1 = lineData to be tested
+#	lineData2 = data to be tested against. MUST BE A FULL LINE.
+#returns:
+#	differences = a list of 2-tuples, in the format 
+#		[(<the opposite of lineData2's value where a difference exists>,
+#		<index of difference in lineData>), ...]
 def differencesInLine(lineData1, lineData2):
 	differences = []
 	opposite = {"0":"1", "1":"0"}
@@ -346,12 +349,20 @@ def prettyPrint(config):
 def main():
 	print("Lets do this!")
 	config = []
-	config.append([".",".",".",".","0","."])
-	config.append([".",".",".",".",".","."])
-	config.append(["1",".",".","1",".","."])
-	config.append([".","0","0",".",".","."])
-	config.append([".",".","0",".",".","."])
-	config.append([".",".",".",".",".","."])
+
+	config.append([".",".",".","1",".","1",".",".",".",".","1","."])
+	config.append(["0",".",".",".",".",".",".","0",".",".",".","0"])
+	config.append([".",".","0","0",".",".",".",".",".",".","1","."])
+	config.append([".","1",".",".",".",".",".",".",".",".",".","1"])
+	config.append([".",".",".","1",".",".","0","0","1",".",".","."])
+	config.append(["1",".","1","1",".","1",".","0",".",".","1","."])
+	config.append([".",".",".",".",".",".","1",".",".",".","1","."])
+	config.append(["0",".","0",".","1",".",".",".",".",".",".","."])
+	config.append([".",".",".",".",".",".","0","1","0",".","1","."])
+	config.append([".","0",".",".","1",".",".",".",".","1","1","."])
+	config.append([".",".",".","0",".",".",".","1",".",".",".","."])
+	config.append([".",".",".",".",".","0","0",".",".","0",".","."])
+
 	boardStack = []
 	boardStack.append(config)
 
